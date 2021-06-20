@@ -1,0 +1,24 @@
+{
+  "name": "phdownloader",
+  "version": "1.0.0",
+  "description": "Downloading Videos from Pornhub in the highest quality avaliable",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "downloader",
+    "pornhub"
+  ],
+  "author": "AsP3X",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "fs": "^0.0.1-security",
+    "fs-extra": "^10.0.0",
+    "https": "^1.0.0",
+    "kiss-ffmpeg": "^0.4.2",
+    "node-fetch": "^2.6.1",
+    "puppeteer": "^10.0.0"
+  }
+}
