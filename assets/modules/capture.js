@@ -68,7 +68,8 @@ async function phCapture(videoURL) {
      * Loading the requested video url and
      * stores the videoTitle
      */
-    await page.goto(videoURL, {waitUntil: 'load', timeout: 0});
+     await page.goto(videoURL, { waitUntil: 'networkidle2', timeout: 0});
+    // await page.goto(videoURL, {waitUntil: 'load', timeout: 0});
     const rawTitle =  await getVideoTitle(page);
     const videoTitle = makeFilenameSafe(rawTitle.toString());
 
