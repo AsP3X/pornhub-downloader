@@ -1,9 +1,37 @@
 const nodefetch = require("node-fetch");
 const https = require('https'); // or 'https' for https:// URLs
 const fs = require('fs');
-const fsExtra = require('fs-extra')
+const fsExtra = require('fs-extra');
+const ffmpeg = require('fluent-ffmpeg');
+const ff = new ffmpeg();
+const coreConvert = require("./convert");
 
 const appRoot = require.main.paths[0].split('node_module')[0].slice(0, -1);
+
+function validateFile(file) {
+    ff.on('start', function(commandLine) {
+        // on start, you can verify the command line to be used
+        console.log('The ffmpeg command line is: ' + commandLine);
+      })
+      .on('progress', function(data) {
+        console.log("Validating file: " + file);
+      })
+      .on('end', function() {
+        return true;
+      })
+      .on('error', function(err) {
+        // handle error conditions
+        if (err) {
+          console.log('Error transcoding file');
+          return false;
+        }
+      })
+      .addInput(file)
+      .addInputOption('-v error')
+      .output('outfile')
+      .outputOptions('-f null -')
+      .run();
+}
 
 function cleanUP(directory) {
     fsExtra.emptyDirSync(directory);
@@ -16,6 +44,29 @@ function printProgress(mix, max){
     process.stdout.clearLine();
     process.stdout.cursorTo(0);
     process.stdout.write(`Downloaded ${mix} of ${max}`);
+}
+
+function downloadPart(i, content, maxCount) {
+    if (!fs.existsSync(appRoot + `/downloads/parts/sec_${i}.ts`)) {
+        const file = fs.createWriteStream(appRoot + `/downloads/parts/sec_${i}.ts`);
+        https.get(content.url, function(response) {
+            response.pipe(file, (done) => {
+                if (done) {
+                    if (validateFile(appRoot + `/downloads/parts/sec_${i}.ts`)) {
+                        return true;
+                    } else {
+                        fs.unlinkSync(appRoot + `/downloads/parts/sec_${i}.ts`);
+                        console.log(`Redownload part ${i}`);
+                        downloadPart(i, content, maxCount);
+                    }
+                }
+            });
+        });
+        printProgress(i, maxCount);
+        if (i == (maxCount - 1)) {
+            coreConvert.convM3u8();
+        }   
+    }
 }
 
 async function downloadVideo() {
@@ -44,13 +95,12 @@ async function downloadVideo() {
               "body": null,
               "method": "GET",
               "mode": "cors"
-          });
-      
-        const file = fs.createWriteStream(appRoot + `/downloads/parts/sec_${i}.ts`);
-        https.get(content.url, function(response) {
-            response.pipe(file);
         });
-        printProgress(i, maxCount);
+              
+        if (downloadPart(i, content, maxCount)) {
+            console.log("Download complete");
+        }
+
     }
 }
 

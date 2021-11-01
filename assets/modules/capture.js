@@ -1,6 +1,7 @@
 const puppeteer = require("puppeteer");
 const fs = require("fs");
 const fsp = require("fs").promises;
+const pornhubStream = require("./download");
 
 const Args = process.argv.slice(2);
 const appRoot = require.main.paths[0].split('node_module')[0].slice(0, -1);
@@ -86,7 +87,17 @@ async function phCapture(videoURL) {
                 "title": videoTitle,
                 "url": requestURL
             };
-            fs.writeFileSync(appRoot + "/data/capture.xhr", JSON.stringify(dataBlock));
+            // fs.writeFileSync(appRoot + "/data/capture.xhr", JSON.stringify(dataBlock));
+            fs.writeFile(appRoot + "/data/capture.xhr", JSON.stringify(dataBlock), 'utf-8', function (err) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    console.log("Capture Sucessfull");
+                    pornhubStream.downloadVideo();
+                    browser.close();
+                    return;
+                }
+            });
         }
         request.continue();
     });
