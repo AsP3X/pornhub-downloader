@@ -1,4 +1,6 @@
 .env
 node_modules
 assets/legacy
+downloads/parts/*.ts
+downloads/videos/*.mp4
 data
